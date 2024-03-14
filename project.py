@@ -1,6 +1,5 @@
 import argparse
 import cv2 as cv
-import sys
 import matplotlib.pyplot as plt
  
 # GET ARGUMENTS
@@ -11,7 +10,7 @@ def getParams():
     return parser.parse_args()
 
 # COMPUTE DISPARITY MAP
-def computeDisparityMap(LCameraView,RCameraView,numDisparities=16,blockSize=17):
+def computeDisparityMap(LCameraView,RCameraView,numDisparities,blockSize):
 
     try:
         while LCameraView.isOpened() and RCameraView.isOpened():
@@ -33,16 +32,13 @@ def computeDisparityMap(LCameraView,RCameraView,numDisparities=16,blockSize=17):
             interval = 50
             
             # Get image center box
-            imgL = cv.cvtColor(frameL, cv.COLOR_BGR2GRAY)#[centerY-interval:centerY+interval, centerX-interval:centerX+interval]
-            imgR = cv.cvtColor(frameR, cv.COLOR_BGR2GRAY)#[centerY-interval:centerY+interval, centerX-interval:centerX+interval]
+            imgL = cv.cvtColor(frameL, cv.COLOR_BGR2GRAY)[centerY-interval:centerY+interval, centerX-interval:centerX+interval]
+            imgR = cv.cvtColor(frameR, cv.COLOR_BGR2GRAY)[centerY-interval:centerY+interval, centerX-interval:centerX+interval]
             
             # Set Disparity map algotithm's parameters
             stereoMatcher = cv.StereoBM_create()
             stereoMatcher.setNumDisparities(numDisparities)
             stereoMatcher.setBlockSize(blockSize)
-            #stereoMatcher.setSpeckleRange(16)
-            #stereoMatcher.setMinDisparity(0)
-            #stereoMatcher.setSpeckleWindowSize(45)
             
             # Disparity map computing
             disparity = stereoMatcher.compute(imgL, imgR)
@@ -51,7 +47,7 @@ def computeDisparityMap(LCameraView,RCameraView,numDisparities=16,blockSize=17):
             
             plt.figure(1); plt.clf()
             plt.imshow(disparityImg)
-            plt.title('disparity')
+            plt.title('disparity with numDisparity {} and blockSize {}'.format(numDisparities,blockSize))
             plt.pause(0.000001)
 
     except KeyboardInterrupt:
@@ -82,10 +78,13 @@ def playVideos(LCameraView, RCameraView):
     RCameraView.release()
 #    cv.destroyAllWindows()
 
-## LOAD VIDEOS
+# LOAD VIDEOS
 LCameraView= cv.VideoCapture('robotL.avi')
 RCameraView= cv.VideoCapture('robotR.avi')
-#playVideos(LCameraView,RCameraView)
+
+# READ PARAMS
 args =getParams()
+
+# COMPUTE DISPARITY MAP
 computeDisparityMap(LCameraView,RCameraView,int(args.numDisparities),int(args.blockSize))
 
