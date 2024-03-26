@@ -1,10 +1,33 @@
 # COMPUTER VISON PROJECT (Stereo Robot Navigation)
 
+## HOW TO RUN 
+    
+- clone repository
+
+- install required dependencies, the file is meant to be runned in a python venv:
+
+```python
+cd /path/to/cloned/repo
+
+# create venv and install requirements
+python -m venv env
+source env/bin/activate
+pip install -r requirements.txt
+
+# run project
+python project.py
+```
+
+### ARCH + WAYLAND INSTALLATION
+
+On arch linux + wayland the opencv pip package it's not build with support for window creation under wayland, installation must be done with the repo package
+
 ## Objective
 
 Given a video sequence taken by a stereo camera mounted on a moving vehicle, project’s objective is to sense information concerning the space in front of the vehicle which may be deployed by the vehicle navigation system to automatically avoid obstacles.
 
 ## Dataset
+
 The input data consist of a pair of synchronized videos taken by a stereo camera (robotL.avi, robotR.avi), with one video concerning the left view (robotL.avi), the other the right view (robotR.avi). Moreover, the parameters required to estimate distances from stereo images are provided below:
 
 ```
