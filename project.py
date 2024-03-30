@@ -3,16 +3,16 @@ import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
  
-# chessboard dimensions
+# chessboard dimensions (in millimeters)
 H = 178
 W = 125
-
-# allarm trigger limit
-MINIMUM_DISTANCE =  0.8
 
 # chessboard parameters
 CB_INNER_W_CORNERS = 6
 CB_INNER_H_CORNERS = 8
+
+# allarm trigger limit (in meters)
+MINIMUM_DISTANCE =  0.8
 
 # camera parameters
 FOCAL_LENGHT =  567.2 
@@ -110,16 +110,15 @@ def computeDisparityMap(imgL,imgR,frameShape,numDisparities,blockSize):
     imshow("disparity",'disparity with numDisparity {} and blockSize {}'.format(numDisparities,blockSize),disparity)
 
     # printing results
-    print("main disparity value is {}".format(dMain))
-    print("distance from the object is {} meters".format(z/1000))
+    #print("main disparity value is {}".format(dMain))
+    #print("distance from the object is {} meters".format(z/1000))
 
-    if (z/1000 < MINIMUM_DISTANCE):
-        print("distance from the object under the minimum distance, detected distance: {} meters".format(z/1000))
 
-    return z
+    return z,dMain
 
 def main(LCameraView,RCameraView,numDisparities,blockSize,chessboard):
 
+    
     try:
         while LCameraView.isOpened() and RCameraView.isOpened():
 
@@ -132,30 +131,34 @@ def main(LCameraView,RCameraView,numDisparities,blockSize,chessboard):
                 LCameraView.release()
                 RCameraView.release()
                 break
-                
+
             # Get image frames
             imgL = cv.cvtColor(frameL, cv.COLOR_BGR2GRAY)
             imgR = cv.cvtColor(frameR, cv.COLOR_BGR2GRAY)
 
-            z=computeDisparityMap(imgL,imgR,frameL.shape,numDisparities,blockSize)
+            z,dMain=computeDisparityMap(imgL,imgR,frameL.shape,numDisparities,blockSize)
 
+            if (z/1000 < MINIMUM_DISTANCE):
+               alarm=1 
+            else:
+               alarm=0 
+               
             if chessboard: 
                 computeChessboard(imgL,z)
 
-
+            print("{},{},{}".format(dMain,z,alarm))
 
     except KeyboardInterrupt:
         LCameraView.release()
         RCameraView.release()
         print("Released Video Resource")
 
+# READ PARAMS
+args =getParams()
 
 # LOAD VIDEOS
 LCameraView= cv.VideoCapture('robotL.avi')
 RCameraView= cv.VideoCapture('robotR.avi')
-
-# READ PARAMS
-args =getParams()
 
 # MAIN COMPUTATION
 main(LCameraView,RCameraView,args.numDisparities,args.blockSize,args.chessboard)
