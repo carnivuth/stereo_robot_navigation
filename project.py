@@ -1,8 +1,8 @@
 import argparse
 import cv2 as cv
 import numpy as np
-import matplotlib.pyplot as plt
- 
+from utils import imshow
+
 # chessboard dimensions (in millimeters)
 H = 178
 W = 125
@@ -18,13 +18,6 @@ MINIMUM_DISTANCE =  0.8
 FOCAL_LENGHT =  567.2 
 BASELINE = 92.226 
 
-# display image
-def imshow(wname,title, img):
-    plt.figure(wname); 
-    plt.clf()
-    plt.imshow(img)
-    plt.title(title)
-    plt.pause(0.000001)
 
 # GET ARGUMENTS
 def getParams():
@@ -61,26 +54,6 @@ def computeChessboard(imgL,z):
         print("The difference from the computed H and the real H is {}".format(Hdiff))
         print("The difference from the computed W and the real W is {}".format(Wdiff))
 
-# SHOW VIDEO FRAMES IN GRAYSCALE
-def playVideos(LCameraView, RCameraView):
-    while LCameraView.isOpened() and RCameraView.isOpened():
-        Lret, Lframe = LCameraView.read()
-        Rret, Rframe = LCameraView.read()
-     
-        # if frame is read correctly ret is True
-        if not Lret or not Rret:
-            print("Can't receive frame (stream end?). Exiting ...")
-            break
-
-        Lgray = cv.cvtColor(Lframe, cv.COLOR_BGR2GRAY)
-        Rgray = cv.cvtColor(Rframe, cv.COLOR_BGR2GRAY)
-        cv.imshow("Lframe", Lgray) 
-        cv.imshow("Rframe", Rgray) 
-        if cv.waitKey(1) == ord('q'):
-            break
-     
-    LCameraView.release()
-    RCameraView.release()
 
 def computeDisparityMap(imgL,imgR,frameShape,numDisparities,blockSize,interval):
 
@@ -94,8 +67,20 @@ def computeDisparityMap(imgL,imgR,frameShape,numDisparities,blockSize,interval):
     imgLCutted = imgL[centerY-halfsize:centerY+halfsize, centerX-halfsize:centerX+halfsize]
     imgRCutted = imgR[centerY-halfsize:centerY+halfsize, centerX-halfsize:centerX+halfsize]
             
+    # print cutted images
+    imshow("cutted imageL",'Cutted imageL',imgLCutted)
+    imshow("Cutted imageR",'Cutted imageR',imgRCutted)
+
+    # blur images with bilateral filter
+    imgRCutted= cv.bilateralFilter(imgRCutted,9,5,5)
+    imgLCutted= cv.bilateralFilter(imgLCutted,9,5,5)
+
+    # print cutted images
+    imshow("cutted imageL blurred",'Cutted imageL blurred',imgLCutted)
+    imshow("Cutted imageR blurred",'Cutted imageR blurred',imgRCutted)
+
     # Set Disparity map algotithm's parameters
-    stereoMatcher = cv.StereoBM_create()
+    stereoMatcher = cv.StereoSGBM_create()
     stereoMatcher.setNumDisparities(numDisparities)
     stereoMatcher.setBlockSize(blockSize)
     
@@ -137,6 +122,7 @@ def main(LCameraView,RCameraView,numDisparities,blockSize,chessboard,interval):
             # Get image frames
             imgL = cv.cvtColor(frameL, cv.COLOR_BGR2GRAY)
             imgR = cv.cvtColor(frameR, cv.COLOR_BGR2GRAY)
+
 
             z,dMain=computeDisparityMap(imgL,imgR,frameL.shape,numDisparities,blockSize,interval)
 
