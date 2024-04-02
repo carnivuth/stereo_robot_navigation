@@ -29,6 +29,7 @@ def imshow(wname,title, img):
 # GET ARGUMENTS
 def getParams():
     parser = argparse.ArgumentParser(prog='CVproject',description='computer vision project',epilog='credits carnivuth')
+    parser.add_argument('-i','--imageDim',default='100',help='image box dimension to cut from original frames for disparity computation',type=int)
     parser.add_argument('-d','--numDisparities',default='128',help='numDisparities parameter for disparity map algorithm',type=int)
     parser.add_argument('-b','--blockSize',default='13',help='blocksize parameter for disparity map algorithm', type=int)
     parser.add_argument('-c','--chessboard',help='Compute chessboard recognition',action='store_true')
@@ -81,16 +82,17 @@ def playVideos(LCameraView, RCameraView):
     LCameraView.release()
     RCameraView.release()
 
-def computeDisparityMap(imgL,imgR,frameShape,numDisparities,blockSize):
+def computeDisparityMap(imgL,imgR,frameShape,numDisparities,blockSize,interval):
 
     # Calculate center frame
     center = frameShape
     centerY = int(center[0]/2)
     centerX = int(center[1]/2)
-    interval = 100
+    halfsize = int(interval/2)
+
     
-    imgLCutted = imgL[centerY-interval:centerY+interval, centerX-interval:centerX+interval]
-    imgRCutted = imgR[centerY-interval:centerY+interval, centerX-interval:centerX+interval]
+    imgLCutted = imgL[centerY-halfsize:centerY+halfsize, centerX-halfsize:centerX+halfsize]
+    imgRCutted = imgR[centerY-halfsize:centerY+halfsize, centerX-halfsize:centerX+halfsize]
             
     # Set Disparity map algotithm's parameters
     stereoMatcher = cv.StereoBM_create()
@@ -116,7 +118,7 @@ def computeDisparityMap(imgL,imgR,frameShape,numDisparities,blockSize):
 
     return z,dMain
 
-def main(LCameraView,RCameraView,numDisparities,blockSize,chessboard):
+def main(LCameraView,RCameraView,numDisparities,blockSize,chessboard,interval):
 
     
     try:
@@ -136,7 +138,7 @@ def main(LCameraView,RCameraView,numDisparities,blockSize,chessboard):
             imgL = cv.cvtColor(frameL, cv.COLOR_BGR2GRAY)
             imgR = cv.cvtColor(frameR, cv.COLOR_BGR2GRAY)
 
-            z,dMain=computeDisparityMap(imgL,imgR,frameL.shape,numDisparities,blockSize)
+            z,dMain=computeDisparityMap(imgL,imgR,frameL.shape,numDisparities,blockSize,interval)
 
             if (z/1000 < MINIMUM_DISTANCE):
                alarm=1 
@@ -161,5 +163,5 @@ LCameraView= cv.VideoCapture('robotL.avi')
 RCameraView= cv.VideoCapture('robotR.avi')
 
 # MAIN COMPUTATION
-main(LCameraView,RCameraView,args.numDisparities,args.blockSize,args.chessboard)
+main(LCameraView,RCameraView,args.numDisparities,args.blockSize,args.chessboard,args.imageDim)
 
