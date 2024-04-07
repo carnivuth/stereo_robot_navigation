@@ -57,35 +57,23 @@ def computeChessboard(imgL,z):
 
 def computeDisparityMap(imgL,imgR,frameShape,numDisparities,blockSize,interval):
 
-    # Calculate center frame
-    center = frameShape
-    centerY = int(center[0]/2)
-    centerX = int(center[1]/2)
-    halfsize = int(interval/2)
-
-    
-    imgLCutted = imgL[centerY-halfsize:centerY+halfsize, centerX-halfsize:centerX+halfsize]
-    imgRCutted = imgR[centerY-halfsize:centerY+halfsize, centerX-halfsize:centerX+halfsize]
             
-    # print cutted images
-    imshow("cutted imageL",'Cutted imageL',imgLCutted)
-    imshow("Cutted imageR",'Cutted imageR',imgRCutted)
-
-    # blur images with bilateral filter
-    imgRCutted= cv.bilateralFilter(imgRCutted,9,5,5)
-    imgLCutted= cv.bilateralFilter(imgLCutted,9,5,5)
-
-    # print cutted images
-    imshow("cutted imageL blurred",'Cutted imageL blurred',imgLCutted)
-    imshow("Cutted imageR blurred",'Cutted imageR blurred',imgRCutted)
-
     # Set Disparity map algotithm's parameters
     stereoMatcher = cv.StereoSGBM_create()
     stereoMatcher.setNumDisparities(numDisparities)
     stereoMatcher.setBlockSize(blockSize)
     
     # Disparity map computing
-    disparity = stereoMatcher.compute(imgLCutted, imgRCutted)
+    disparity = stereoMatcher.compute(imgL, imgR)
+
+    # Calculate center frame
+    center = frameShape
+    centerY = int(center[0]/2)
+    centerX = int(center[1]/2)
+    halfsize = int(interval/2)
+    
+    # cut disparity to the center frame
+    disparity = disparity[centerY-halfsize:centerY+halfsize, centerX-halfsize:centerX+halfsize]
             
     # main disparity computing
     dMain = np.absolute(disparity).mean()
