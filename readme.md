@@ -20,7 +20,7 @@ python project.py
 
 ### ARCH + WAYLAND INSTALLATION
 
-On arch linux + wayland the opencv pip package it's not build with support for window creation under wayland, installation must be done with the repo package
+The opencv pip package it's not build with support for window creation under wayland, installation must be done with the repo package
 
 ## Objective
 
