@@ -54,9 +54,7 @@ def computeChessboard(imgL,z):
         print("The difference from the computed H and the real H is {}".format(Hdiff))
         print("The difference from the computed W and the real W is {}".format(Wdiff))
 
-
 def computeDisparityMap(imgL,imgR,frameShape,numDisparities,blockSize,interval):
-
             
     # Set Disparity map algotithm's parameters
     stereoMatcher = cv.StereoSGBM_create()
@@ -75,19 +73,18 @@ def computeDisparityMap(imgL,imgR,frameShape,numDisparities,blockSize,interval):
     # cut disparity to the center frame
     disparity = disparity[centerY-halfsize:centerY+halfsize, centerX-halfsize:centerX+halfsize]
             
-    # main disparity computing
-    dMain = np.absolute(disparity).mean()
+    # main disparity computing excluding negative values where disparity could not be computed
+    dMain = disparity[disparity >= 0].mean()
 
     # depth computing
     z = (FOCAL_LENGHT * BASELINE)/dMain
 
     # printing disparity map
-    imshow("disparity",'disparity with numDisparity {} and blockSize {}'.format(numDisparities,blockSize),disparity)
+    imshow("disparity",'numDisparity {}, blockSize {}'.format(numDisparities,blockSize),disparity)
 
     # printing results
     #print("main disparity value is {}".format(dMain))
     #print("distance from the object is {} meters".format(z/1000))
-
 
     return z,dMain
 
