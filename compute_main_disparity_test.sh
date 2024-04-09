@@ -9,5 +9,5 @@ function wait_n_proc {
 rm -r data
 mkdir -p data
 for i in `seq 5 2 99`;do 
-	  wait_n_proc; python project.py -b $i > data/data_blockSize_$i.csv &  
+	  wait_n_proc; python project.py -b $i -c  > data/data_blockSize_$i.csv &  
 done
