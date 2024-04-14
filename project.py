@@ -1,4 +1,5 @@
 import argparse
+import pandas as pd
 import cv2 as cv
 from utils import imshow
 
@@ -36,10 +37,12 @@ def computeChessboard(imgL,z,cornerWinSize):
 
     if ret == True:
 
-        criteria = (cv.TERM_CRITERIA_EPS + cv.TermCriteria_COUNT, 40, 0.001)
-        corners = cv.cornerSubPix( imgL, corners,(cornerWinSize,cornerWinSize) ,(-1,-1),criteria)
+        #criteria = (cv.TERM_CRITERIA_EPS + cv.TermCriteria_COUNT, 40, 0.001)
+        #corners = cv.cornerSubPix( imgL, corners,(cornerWinSize,cornerWinSize) ,(-1,-1),criteria)
+       
         # draw chessboard corners in the left image
         cv.drawChessboardCorners(imgL, (CB_INNER_H_CORNERS,CB_INNER_W_CORNERS), corners, ret)
+
         imshow("chessboard",'chessboard',imgL)
 
         # get w value WRONG VALUES
@@ -62,12 +65,12 @@ def computeChessboard(imgL,z,cornerWinSize):
         return -100,-100
 
 def computeDisparityMap(imgL,imgR,frameShape,numDisparities,blockSize,interval):
-            
+   
     # Set Disparity map algotithm's parameters
     stereoMatcher = cv.StereoSGBM_create()
     stereoMatcher.setNumDisparities(numDisparities)
     stereoMatcher.setBlockSize(blockSize)
-    
+
     # Disparity map computing
     disparity = stereoMatcher.compute(imgL, imgR)
 
@@ -79,7 +82,7 @@ def computeDisparityMap(imgL,imgR,frameShape,numDisparities,blockSize,interval):
     
     # cut disparity to the center frame
     disparity = disparity[centerY-halfsize:centerY+halfsize, centerX-halfsize:centerX+halfsize]
-            
+
     # main disparity computing excluding negative values where disparity could not be computed
     dMain = (disparity[disparity >= 0]/16).mean()
 
