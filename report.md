@@ -37,6 +37,6 @@ Where Hdiff and Wdiff are optional parameter that can be enabled by passing the 
 
 The output we obtain is the following:
 
-![Alt text](<Output bellino.png>)
+![Alt text](<Output_bellino.png>)
 
 so we notice a difference in the quality of the aspected width and the real one, that decrease the second time the drone gets near the chessboard.
