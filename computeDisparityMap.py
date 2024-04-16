@@ -5,7 +5,7 @@ import constants
 def computeDisparityMap(imgL,imgR,frameShape,numDisparities,blockSize,interval,cutted_frame):
    
     # Set Disparity map algotithm's parameters
-    stereoMatcher = cv.StereoSGBM_create()
+    stereoMatcher = cv.StereoBM_create()
     stereoMatcher.setNumDisparities(numDisparities)
     stereoMatcher.setBlockSize(blockSize)
 
