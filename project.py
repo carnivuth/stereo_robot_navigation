@@ -1,101 +1,27 @@
+import matplotlib.pyplot as plt
 import argparse
-import pandas as pd
 import cv2 as cv
-from utils import imshow
-
-# chessboard dimensions (in millimeters)
-H = 178
-W = 125
-
-# best blocksize value 
-BEST_BLOCKSIZE_VALUE=33
-# chessboard parameters
-CB_INNER_W_CORNERS = 6
-CB_INNER_H_CORNERS = 8
-
-# allarm trigger limit (in meters)
-MINIMUM_DISTANCE =  0.8
-
-# camera parameters
-FOCAL_LENGHT =  567.2 
-BASELINE = 92.226 
-
+import pandas as pd
+import constants
+from computeDisparityMap import computeDisparityMap
+from computeChessboard import computeChessboard
 
 # GET ARGUMENTS
 def getParams():
     parser = argparse.ArgumentParser(prog='CVproject',description='computer vision project',epilog='credits carnivuth')
     parser.add_argument('-i','--imageDim',default='100',help='image box dimension to cut from original frames for disparity computation',type=int)
     parser.add_argument('-d','--numDisparities',default='128',help='numDisparities parameter for disparity map algorithm',type=int)
-    parser.add_argument('-b','--blockSize',default=BEST_BLOCKSIZE_VALUE,help='blocksize parameter for disparity map algorithm', type=int)
+    parser.add_argument('-b','--blockSize',default=constants.BEST_BLOCKSIZE_VALUE,help='blocksize parameter for disparity map algorithm', type=int)
     parser.add_argument('-c','--chessboard',help='Compute chessboard recognition',action='store_true')
-    parser.add_argument('-s','--cornerWinSize',help='corner win size parameter',type=int)
+    parser.add_argument('-p','--cutted_frame',help='print cutted window frame',action='store_true')
     return parser.parse_args()
 
-# FIND CHESBOARD IN THE IMAGE
-def computeChessboard(imgL,z,cornerWinSize):
-    ret,corners = cv.findChessboardCorners(imgL ,(CB_INNER_H_CORNERS,CB_INNER_W_CORNERS))
+def main(LCameraView,RCameraView,numDisparities,blockSize,chessboard,interval,cutted_frame):
 
-    if ret == True:
-
-        #criteria = (cv.TERM_CRITERIA_EPS + cv.TermCriteria_COUNT, 40, 0.001)
-        #corners = cv.cornerSubPix( imgL, corners,(cornerWinSize,cornerWinSize) ,(-1,-1),criteria)
-       
-        # draw chessboard corners in the left image
-        cv.drawChessboardCorners(imgL, (CB_INNER_H_CORNERS,CB_INNER_W_CORNERS), corners, ret)
-
-        imshow("chessboard",'chessboard',imgL)
-
-        # get w value WRONG VALUES
-        h =abs(corners[CB_INNER_H_CORNERS-1][0][1]- corners[0][0][1])
-        w =abs(corners[CB_INNER_H_CORNERS-1][0][0]- corners[corners.shape[0]-1][0][0])
-
-        # compute W value 
-        HComputed =z * h/FOCAL_LENGHT 
-        WComputed =z * w/FOCAL_LENGHT 
-    
-        # compare W value with real w of the chessboard
-        Hdiff = abs(HComputed- H)
-        Wdiff = abs(WComputed- W)
-
-        # print differences
-        return Hdiff, Wdiff
-        #print("The difference from the computed H and the real H is {}".format(Hdiff))
-        #print("The difference from the computed W and the real W is {}".format(Wdiff))
+    if chessboard:
+        df = pd.DataFrame(columns = ['dMain','z in mm','Z in m','alarm','Hdiff','Wdiff'])
     else:
-        return -100,-100
-
-def computeDisparityMap(imgL,imgR,frameShape,numDisparities,blockSize,interval):
-   
-    # Set Disparity map algotithm's parameters
-    stereoMatcher = cv.StereoSGBM_create()
-    stereoMatcher.setNumDisparities(numDisparities)
-    stereoMatcher.setBlockSize(blockSize)
-
-    # Disparity map computing
-    disparity = stereoMatcher.compute(imgL, imgR)
-
-    # Calculate center frame
-    center = frameShape
-    centerY = int(center[0]/2)
-    centerX = int(center[1]/2)
-    halfsize = int(interval/2)
-    
-    # cut disparity to the center frame
-    disparity = disparity[centerY-halfsize:centerY+halfsize, centerX-halfsize:centerX+halfsize]
-
-    # main disparity computing excluding negative values where disparity could not be computed
-    dMain = (disparity[disparity >= 0]/16).mean()
-
-    # depth computing
-    z = (FOCAL_LENGHT * BASELINE)/dMain
-
-    # printing disparity map
-    imshow("disparity",'numDisparity {}, blockSize {}'.format(numDisparities,blockSize),disparity)
-
-    return z,dMain
-
-def main(LCameraView,RCameraView,numDisparities,blockSize,chessboard,interval,cornerWinSize):
-
+        df = pd.DataFrame(columns = ['dMain','z in mm','Z in m','alarm'])
     
     try:
         while LCameraView.isOpened() and RCameraView.isOpened():
@@ -114,18 +40,45 @@ def main(LCameraView,RCameraView,numDisparities,blockSize,chessboard,interval,co
             imgL = cv.cvtColor(frameL, cv.COLOR_BGR2GRAY)
             imgR = cv.cvtColor(frameR, cv.COLOR_BGR2GRAY)
 
-            z,dMain=computeDisparityMap(imgL,imgR,frameL.shape,numDisparities,blockSize,interval)
+            # disparity map computation
+            z,dMain=computeDisparityMap(imgL,imgR,frameL.shape,numDisparities,blockSize,interval,cutted_frame)
 
-            if (z/1000 < MINIMUM_DISTANCE):
+            if (z/1000 < constants.MINIMUM_DISTANCE):
                alarm=1 
             else:
                alarm=0 
                
+            # print output data, adding data to dataframe
             if chessboard: 
-                Hdiff,Wdiff = computeChessboard(imgL,z,cornerWinSize)
+                Hdiff,Wdiff = computeChessboard(imgL,z)
                 print("{},{},{},{},{},{}".format(dMain,z,z/1000,alarm,Hdiff,Wdiff))
+                output = {
+                        'dMain': dMain,
+                        'z in mm': z,
+                        'Z in m': z/1000,
+                        'alarm': alarm,
+                        'Hdiff': Hdiff,
+                        'Wdiff': Wdiff
+                        }
+                df.loc[len(df)] = output
             else:
                 print("{},{},{},{}".format(dMain,z,z/1000,alarm))
+                output = {
+                        'dMain': dMain,
+                        'z in mm': z,
+                        'Z in m': z/1000,
+                        'alarm': alarm
+                        }
+                df.loc[len(df)] = output
+
+        if chessboard:
+            df= df[df['Hdiff'] != -100]
+            df= df[df['Wdiff'] != -100]
+
+        # plotting dataframe
+        df.plot(subplots=True,)
+        plt.tight_layout()
+        plt.show()
 
     except KeyboardInterrupt:
         LCameraView.release()
@@ -140,5 +93,6 @@ LCameraView= cv.VideoCapture('robotL.avi')
 RCameraView= cv.VideoCapture('robotR.avi')
 
 # MAIN COMPUTATION
-main(LCameraView,RCameraView,args.numDisparities,args.blockSize,args.chessboard,args.imageDim,args.cornerWinSize)
+main(LCameraView,RCameraView,args.numDisparities,args.blockSize,args.chessboard,args.imageDim,args.cutted_frame)
+
 
