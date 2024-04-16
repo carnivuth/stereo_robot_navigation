@@ -12,7 +12,7 @@ OUTPUT_PATH_W= OUTPUT_PATH_BASE + '/wdiff'
 COLUMNS=['dMain','Z in mm','Z in M','alarm flag','Hdiff','Wdiff']
 
 directory = os.fsencode(DATA_PATH)
-    
+
 for file in os.listdir(directory):
     filename = os.fsdecode(os.path.join(directory,file))
     df = pd.read_csv(filename,names=COLUMNS,sep=',')
@@ -25,13 +25,13 @@ for file in os.listdir(directory):
 
     out_dir= os.fsencode(OUTPUT_PATH_W)
     outputname = os.fsdecode(os.path.join(out_dir,file))
-    df[df['Wdiff'] != -100]['Wdiff'].plot()
+    df['Wdiff'].plot()
     plt.savefig(outputname+ 'W_diff.png')
     plt.clf()
 
     out_dir= os.fsencode(OUTPUT_PATH_H)
     outputname = os.fsdecode(os.path.join(out_dir,file))
-    df[df['Hdiff']!= -100]['Hdiff'].plot()
+    df['Hdiff'].plot()
     plt.savefig(outputname+ 'H_diff.png')
     plt.clf()
 
