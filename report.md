@@ -2,7 +2,8 @@
 
 ## PROJECT ANALYSIS
 
-From the requirements the project consists in creating a system capable of sensing distance given a stereo image input from a video source (ideally a robot camera stream) exploiting the stereo matching principle, The system needs to implement the following functionalities:
+From the requirements the project consists in creating a system capable of sensing distance given a stereo image in input from a video source (ideally a robot camera stream) exploiting the stereo matching principle.
+The system needs to implement the following functionalities:
 
 - trigger an allarm when the distance sensed is lower than a thrashold ( 0.8 meters from requirements)
 - compute the dimensions of the chessboard in the video and compare them with the real one
@@ -14,13 +15,13 @@ The project is organized in files python and a python script with some command l
 
 The algorithm implematation is done as we said through OpenCV's stereoBM class. 
 
-We take the frames and check them (as corrupted frames can occur) and then we procede to comput the disparity.
+We take the frames and check them (as corrupted frames can occur) and then we proceed to compute the disparity.
 
 We cut the image to a central portion of the image of size $100x100$ to make it easier to calculate the distance.
 
-So we take the mean values of disparity and the distance from the chessboard in each frames, and set an alarm that will be triggered just when the value of the distance is obtained shorted then the threshold.
+So we take the mean values of the disparity and the distance from the chessboard in each frames, and set an alarm that will be triggered just when the value of the distance obtained is shorter then the threshold.
 
-Lastly we check the chessboard parameters obtained with the real ones and print a graph of the difference between the values.
+Lastly we compare the chessboard parameters obtained with the real ones, and print a graph of the difference between the values.
 
 The projects output on the STDOUT is a row with comma separated elements in the following format
 
@@ -34,3 +35,8 @@ Where Hdiff and Wdiff are optional parameter that can be enabled by passing the 
 
 ## RESULTS
 
+The output we obtain is the following:
+
+![Alt text](<Output bellino.png>)
+
+so we notice a difference in the quality of the aspected width and the real one, that decrease the second time the drone gets near the chessboard.
