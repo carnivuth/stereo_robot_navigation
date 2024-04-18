@@ -75,6 +75,10 @@ def main(LCameraView,RCameraView,numDisparities,blockSize,chessboard,interval,cu
             df= df[df['Hdiff'] != -100]
             df= df[df['Wdiff'] != -100]
 
+            # smoothing curves by local mean filtering
+            df['Wdiff'] = df.Wdiff.rolling(constants.SMOOTH).mean()
+            df['Hdiff'] = df.Hdiff.rolling(constants.SMOOTH).mean()
+
         # plotting dataframe
         df.plot(subplots=True,)
         plt.tight_layout()
