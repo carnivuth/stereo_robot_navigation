@@ -9,11 +9,20 @@ From the requirements the project consists in creating a system capable of sensi
 
 ## IMPLEMENTATION
 
-The project implements the stereo matching algorithm through OpenCV library's stereoBM class which implements the block matching algorithm
-The project is organized as a python script with some command line parameters, (run python project.py --help for more informations), it implements
-The algorithm implematation is done trough OpenCV's stereoBM class, the image is cutted to a central portion of the image of size $100x100$  
+The project implements the stereo matching algorithm through OpenCV library's stereoBM class which implements the block matching algorithm.
+The project is organized in files python and a python script with some command line parameters, (run python project.py --help for more informations).
 
-The projects output on the STDOUT a row with comma separated elements in the following format
+The algorithm implematation is done as we said through OpenCV's stereoBM class. 
+
+We take the frames and check them (as corrupted frames can occur) and then we procede to comput the disparity.
+
+We cut the image to a central portion of the image of size $100x100$ to make it easier to calculate the distance.
+
+So we take the mean values of disparity and the distance from the chessboard in each frames, and set an alarm that will be triggered just when the value of the distance is obtained shorted then the threshold.
+
+Lastly we check the chessboard parameters obtained with the real ones and print a graph of the difference between the values.
+
+The projects output on the STDOUT is a row with comma separated elements in the following format
 
 ```
 dMain,z,z in meters, alarm, Hdiff,Wdiff 
