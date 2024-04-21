@@ -15,3 +15,6 @@ MINIMUM_DISTANCE =  0.8
 # camera parameters
 FOCAL_LENGHT =  567.2 
 BASELINE = 92.226 
+
+# smoothing curves window size
+SMOOTH=10
