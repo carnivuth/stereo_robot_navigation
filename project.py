@@ -82,6 +82,9 @@ def main(LCameraView,RCameraView,numDisparities,blockSize,chessboard,interval,cu
         # plotting dataframe
         df.plot(subplots=True,)
         plt.tight_layout()
+        GlobalHdiffError = df['Hdiff'].mean()
+        GlobalWdiffError = df['Wdiff'].mean()
+        plt.plot([GlobalHdiffError,GlobalWdiffError])
         plt.show()
 
     except KeyboardInterrupt:
