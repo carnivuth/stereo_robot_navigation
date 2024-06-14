@@ -1,5 +1,7 @@
 # COMPUTER VISON PROJECT (Stereo Robot Navigation)
 
+## [REPORT CAN BE FOUND HERE](./report.md)
+
 ## HOW TO RUN 
     
 - clone repository
