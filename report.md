@@ -2,42 +2,50 @@
 
 ## PROJECT ANALYSIS
 
-From the requirements the project consists in creating a system capable of sensing distance given a stereo image in input from a video source (ideally a robot camera stream) exploiting the stereo matching principle.
+The project consists in creating a system capable of sensing distance given a stereo image input from a video source (ideally a robot camera stream) exploiting the stereo matching principle.
+
 The system needs to implement the following functionalities:
 
-- trigger an allarm when the distance sensed is lower than a thrashold ( 0.8 meters from requirements)
+- trigger an alarm when the distance sensed is lower than a threshold ( 0.8 meters from requirements)
 - compute the dimensions of the chessboard in the video and compare them with the real one
 
 ## IMPLEMENTATION
 
-The project implements the stereo matching algorithm through OpenCV library's stereoBM class which implements the block matching algorithm.
-The project is organized in files python and a python script with some command line parameters, (run python project.py --help for more informations).
+The system computes the disparity map for each frame and cuts it to a central portion of $100 \times 100$ pixels, to improve computation of distance the mean value of the disparity is taken as common reference for all the point in the window.
 
-The algorithm implematation is done, as we said, through OpenCV's stereoBM class. 
+Than the computation of distance is performed, and the system signals if distance is lower than the threshold value.
 
-We take the frames using the function VideoCapture() from OpenCV and check them (as corrupted frames can occur) and then we proceed to compute the disparity, using the function computeDisparityMap that take two stereo images and compute the disparity map between them using stereoMatcher.compute(imgL, imgR) with stereoMatcher = cv.StereoBM_create().
+In the last phase chessboard corners and dimensions differences are computed and stored in a dataframe for post execution evaluation.
 
-We cut the image to a central portion of the image of size $100x100$ to make it easier to calculate the distance.
-
-Then we take the mean values of the disparity saved in dMain and the distance from the chessboard in each frames saved in z, and set an alarm that will be triggered just when the value of the distance obtained is shorter then the threshold.
-
-Lastly we compute the chessboard, finding the corners with the function cv.findChessboardCorners() and calculating the parameters so that we can compare the chessboard parameters obtained with the real ones, and print a graph of the difference between the values.
-
-The projects output on the STDOUT is a row with comma separated elements in the following format
+The projects behaves like a line filter on the `STDOUT` , for each frame computed it prints a row with comma separated elements in the following format:
 
 ```
-dMain,z,z in meters, alarm, Hdiff,Wdiff 
+dMain,z,z in meters, alarm, Hdiff,Wdiff
 ```
+
 Where:
-- alarm is a boolean true only when the distance is lower than 0.8 meters
-- dMain is the mean of the disparity of the central box of the image without considering the points 
-Where Hdiff and Wdiff are optional parameter that can be enabled by passing the `-c` parameter.
+- `alarm` is a boolean true only when the distance is lower than 0.8 meters
+- `dMain` is the mean of the disparity of the central box of the image
+- `z` is the computed distance
+- `Hdiff` and `Wdiff` are the computed differences between the real dimensions of the chessboard and the real value
+
+### SEARCH FOR THE BEST PARAMETERS
+
+In order to look for the best set of parameters the team decided to adopt a brute force approach by testing the script running with different parameters and evaluating the results afterwards.
 
 ## RESULTS
 
-The output we obtain is the following:
+After parameter tuning the system shows the following results:
 
 ![](final_statistics.png)
 
-so we notice a difference in the quality of the aspected width and the real one, that decrease the second time the drone gets near the chessboard.
-One hypothesis could be that, given the second time the drone approaches the chessboard it is not exactly centered but approaches with a trajectory more shifted to the side, we believe thsat this change in viewing angle could influence the detection of the corners, and knowing that lens distortions are usually more pronounced at the edges of the field of view, with part of the chessboard being closer to the edge, there could be a distortion effect that reduce the precision of the calculations.
+The system shows a decrease of performance in the second phase (*near the frame 300*) where the drone is nearest to the camera, one possible explanation can be found in the fact that in this phase, the drone camera is not perfectly parallel to the plane of the chessboard, this could cause some errors in the measurements due to the fact that the formulas used to compute it:
+
+$$
+W = \frac{z\ast w}{f}
+$$
+
+$$
+H = \frac{z\ast h}{f}
+$$
+Relies on the assumption of the plane being perfectly parallel
